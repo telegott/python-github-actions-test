@@ -1,0 +1,40 @@
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    types: [ assigned, opened, synchronize, reopened ]
+
+name: test
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Setup Python
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.8.9'
+
+      - name: Install linux libraries
+        run: |
+          sudo apt-get install -yqq --no-install-recommends pipenv
+
+      - name: Install packages
+        run: |
+          pipenv lock --requirements > requirements.txt
+          pip install -r requirements.txt
+
+      - name: Run tests
+        run: |
+          python -m unittest discover tests
+
+      - name: Run linting
+        run: |
+          pylint app tests _tasks
